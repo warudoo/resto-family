@@ -1,5 +1,5 @@
 <?php
-$password_asli = 'admin123'; // Ganti dengan password yang Anda inginkan
+$password_asli = 'admin123'; 
 $hashed_password = password_hash($password_asli, PASSWORD_DEFAULT);
 
 echo "Password Asli: " . $password_asli . "<br>";
