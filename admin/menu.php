@@ -4,15 +4,12 @@ require_once __DIR__ . '/../inc/template/header.php';
 
 // Pastikan hanya ADMIN yang bisa mengakses
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /index.php');
+    header('Location: ' . BASE_URL . 'index.php');
     exit;
 }
 
 $message = '';
 
-// --- LOGIKA CRUD ---
-
-// 1. CREATE / UPDATE
 if (isset($_POST['submit'])) {
     $nama = trim($_POST['nama']);
     $harga = (int)$_POST['harga'];
@@ -20,34 +17,32 @@ if (isset($_POST['submit'])) {
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
     if ($id > 0) {
-        // UPDATE
         $stmt = $pdo->prepare("UPDATE menu SET nama = ?, harga = ?, kategori = ? WHERE id = ?");
         $stmt->execute([$nama, $harga, $kategori, $id]);
-        $message = "<div class='alert alert-success'>Menu **{$nama}** berhasil diupdate.</div>";
+        $message = "<div class='alert alert-success mb-3'><i class='bi bi-check-circle-fill me-1'></i> Menu <strong>{$nama}</strong> berhasil diupdate.</div>";
     } else {
-        // CREATE
         $stmt = $pdo->prepare("INSERT INTO menu (nama, harga, kategori) VALUES (?, ?, ?)");
         $stmt->execute([$nama, $harga, $kategori]);
-        $message = "<div class='alert alert-success'>Menu **{$nama}** berhasil ditambahkan.</div>";
+        $message = "<div class='alert alert-success mb-3'><i class='bi bi-check-circle-fill me-1'></i> Menu <strong>{$nama}</strong> berhasil ditambahkan.</div>";
     }
 }
 
-// 2. DELETE
+// DELETE
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $stmt = $pdo->prepare("DELETE FROM menu WHERE id = ?");
     $stmt->execute([$id]);
-    $message = "<div class='alert alert-warning'>Menu ID: **{$id}** berhasil dihapus.</div>";
-    // Redirect untuk menghilangkan parameter GET agar form tidak ter-submit ulang
-    header('Location: menu.php'); 
+    $_SESSION['flash'] = "<div class='alert alert-warning mb-3'><i class='bi bi-exclamation-triangle-fill me-1'></i> Menu ID <strong>{$id}</strong> berhasil dihapus.</div>";
+    header('Location: menu.php');
     exit;
 }
 
-// 3. READ (Ambil semua menu)
-$stmt = $pdo->query("SELECT * FROM menu ORDER BY kategori, nama");
+// READ
+$stmt = $pdo->query("SELECT * FROM menu ORDER BY id ASC");
 $menu_list = $stmt->fetchAll();
 
-// 4. PRE-FILL FORM untuk EDIT
+
+// EDIT (Pre-fill form)
 $menu_edit = null;
 if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
@@ -57,40 +52,46 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
 }
 ?>
 
-<h2 class="mb-4">Kelola Menu Makanan</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary mb-0"></i>Tambahkan Menu</h2>
+</div>
 
+<?= $_SESSION['flash'] ?? '' ?>
+<?php unset($_SESSION['flash']); ?>
 <?= $message ?>
 
-<div class="card mb-4">
-    <div class="card-header bg-success text-white">
-        <?= $menu_edit ? 'Edit Menu: ' . $menu_edit['nama'] : 'Tambah Menu Baru' ?>
+<div class="card border-0 shadow-sm mb-5">
+    <div class="card-header bg-success text-white fw-semibold">
+        <i class="bi <?= $menu_edit ? 'bi-pencil-square' : 'bi-plus-circle' ?> me-2"></i>
+        <?= $menu_edit ? 'Edit Menu: ' . htmlspecialchars($menu_edit['nama']) : 'Tambah Menu Baru' ?>
     </div>
     <div class="card-body">
         <form action="menu.php" method="POST">
-            <input type="hidden" name="id" value="<?= $menu_edit ? $menu_edit['id'] : '' ?>">
+            <input type="hidden" name="id" value="<?= $menu_edit['id'] ?? '' ?>">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label for="nama" class="form-label">Nama Menu</label>
-                    <input type="text" class="form-control" id="nama" name="nama" value="<?= $menu_edit ? htmlspecialchars($menu_edit['nama']) : '' ?>" required>
+                    <label for="nama" class="form-label fw-semibold">Nama Menu</label>
+                    <input type="text" class="form-control" id="nama" name="nama" placeholder="Contoh: Nasi Goreng Spesial" 
+                        value="<?= htmlspecialchars($menu_edit['nama'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-3">
-                    <label for="harga" class="form-label">Harga (Rp)</label>
-                    <input type="number" class="form-control" id="harga" name="harga" value="<?= $menu_edit ? $menu_edit['harga'] : '' ?>" required min="100">
+                    <label for="harga" class="form-label fw-semibold">Harga (Rp)</label>
+                    <input type="number" class="form-control" id="harga" name="harga" placeholder="Contoh: 25000" 
+                        value="<?= htmlspecialchars($menu_edit['harga'] ?? '') ?>" required min="100">
                 </div>
                 <div class="col-md-3">
-                    <label for="kategori" class="form-label">Kategori</label>
+                    <label for="kategori" class="form-label fw-semibold">Kategori</label>
                     <select id="kategori" name="kategori" class="form-select" required>
                         <option value="">Pilih Kategori</option>
                         <?php $kategoris = ['Nasi', 'Lauk', 'Minuman', 'Pelengkap']; ?>
                         <?php foreach ($kategoris as $k): ?>
-                            <option value="<?= $k ?>" <?= $menu_edit && $menu_edit['kategori'] == $k ? 'selected' : '' ?>>
-                                <?= $k ?>
-                            </option>
+                            <option value="<?= $k ?>" <?= ($menu_edit['kategori'] ?? '') == $k ? 'selected' : '' ?>><?= $k ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" name="submit" class="btn btn-primary w-100">
+                        <i class="bi <?= $menu_edit ? 'bi-save' : 'bi-plus-lg' ?> me-1"></i>
                         <?= $menu_edit ? 'Update' : 'Simpan' ?>
                     </button>
                 </div>
@@ -99,35 +100,48 @@ if (isset($_GET['action']) && $_GET['action'] == 'edit' && isset($_GET['id'])) {
     </div>
 </div>
 
-<h3 class="mt-5">Daftar Menu Saat Ini</h3>
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nama Menu</th>
-            <th>Harga</th>
-            <th>Kategori</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php if (empty($menu_list)): ?>
-            <tr><td colspan="5" class="text-center">Belum ada menu yang ditambahkan.</td></tr>
-        <?php endif; ?>
-        <?php foreach ($menu_list as $menu): ?>
-            <tr>
-                <td><?= $menu['id'] ?></td>
-                <td><?= htmlspecialchars($menu['nama']) ?></td>
-                <td>Rp. <?= number_format($menu['harga'], 0, ',', '.') ?></td>
-                <td><?= $menu['kategori'] ?></td>
-                <td>
-                    <a href="menu.php?action=edit&id=<?= $menu['id'] ?>" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="menu.php?action=delete&id=<?= $menu['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus menu ini?')">Hapus</a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-dark text-white fw-semibold">
+        <i class="bi bi-list-ul me-2"></i>Daftar Menu Saat Ini
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th style="width:5%">#</th>
+                    <th>Nama Menu</th>
+                    <th>Harga</th>
+                    <th>Kategori</th>
+                    <th style="width:18%">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($menu_list)): ?>
+                    <tr><td colspan="5" class="text-center text-muted py-4">Belum ada menu yang ditambahkan.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($menu_list as $menu): ?>
+                        <tr>
+                            <td><?= $menu['id'] ?></td>
+                            <td><?= htmlspecialchars($menu['nama']) ?></td>
+                            <td>Rp <?= number_format($menu['harga'], 0, ',', '.') ?></td>
+                            <td><?= htmlspecialchars($menu['kategori']) ?></td>
+                            <td>
+                                <a href="menu.php?action=edit&id=<?= $menu['id'] ?>" class="btn btn-sm btn-warning me-1">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <a href="menu.php?action=delete&id=<?= $menu['id'] ?>" 
+                                class="btn btn-sm btn-danger"
+                                onclick="return confirm('Yakin ingin menghapus menu ini?')">
+                                <i class="bi bi-trash3-fill"></i> Hapus
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <?php
 require_once __DIR__ . '/../inc/template/footer.php';
