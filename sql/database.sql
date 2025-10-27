@@ -18,4 +18,4 @@ CREATE TABLE menu (
 
 -- Contoh Data Awal (Admin)
 -- Ganti 'hashed_password_admin' dengan hasil dari password_hash('passwordku', PASSWORD_DEFAULT)
-INSERT INTO users (username, password, role) VALUES ('adminresto', '$2y$10$............', 'admin');
+INSERT INTO users (username, password, role) VALUES ('adminresto', '$2y$10$n8dciA8u.3BPSj1bp7HMx.IuyspueUpqNJHjZd2yqc5LZAwXQLMP.', 'admin');
