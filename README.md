@@ -131,7 +131,3 @@ resto-family/
 * Semua operasi CRUD aman dari SQL Injection karena menggunakan **Prepared Statements (PDO)**.
 * Password disimpan dalam bentuk **hash**, bukan teks asli.
 * Didesain agar mudah dikembangkan menjadi sistem POS lebih kompleks (fitur laporan, print struk thermal, dsb).
-
----
-
-Mau gua tambahin juga **preview tampilan (screenshot)** di bagian atas README-nya biar lebih menarik pas diliat di GitHub?
