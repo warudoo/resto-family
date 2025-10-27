@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 
 // Konfigurasi Database
 $host = 'localhost';
-$db   = 'resto_family';
+$db   = 'resto-family';
 $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';
@@ -23,6 +23,6 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
      // Di lingkungan production, catat error, jangan tampilkan ke pengguna
-     exit('Koneksi database gagal: ' . $e->getMessage()); 
+    exit('Koneksi database gagal: ' . $e->getMessage()); 
 }
 ?>
