@@ -42,7 +42,7 @@ if (empty($username) || empty($password)) {
 
 <div class="login-container card shadow-lg mx-auto">
 <div class="card-header bg-primary text-white">
-    <h4 class="mb-0">RESTAURANT FAMILY - Login</h4>
+    <h4 class="mb-0">RESTO MUHAMAD SALWARUD - Login</h4>
 </div>
 <div class="card-body">
     <?php if ($error): ?>
